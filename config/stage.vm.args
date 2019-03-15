@@ -1,0 +1,4 @@
+## Name of the node
+-name yawp-stage@yawp-stage-ip
+## Cookie for distributed erlang
+-setcookie yawp-cookie

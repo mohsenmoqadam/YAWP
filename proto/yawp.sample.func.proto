@@ -1,0 +1,5 @@
+package yawp.sample.func;
+import "yawp.sample.type.proto";
+// messageCode = 101
+message Call {
+}
