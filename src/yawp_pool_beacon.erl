@@ -1,4 +1,5 @@
 -module(yawp_pool_beacon).
+
 -author('MohsenMoqadam@yahoo.com').
 -behaviour(gen_server).
 
@@ -32,6 +33,7 @@ start_link(#yawp_pool{name = Name}) ->
                           [],
                           []).
 
+-spec get_name(yawp_pool_name()) -> {ok, yawp_pool_beacon_name()}.
 get_name(Name) ->
     {ok, get_beacon_name(Name)}.
 

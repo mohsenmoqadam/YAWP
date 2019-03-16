@@ -1,4 +1,5 @@
 -module(yawp_pool_mntr).
+
 -author('MohsenMoqadam@yahoo.com').
 -behaviour(gen_server).
 
@@ -29,9 +30,11 @@
 start_link(#yawp_pool{name = Name} = Pool) ->
     gen_server:start_link({local, mntr_name(Name)}, ?MODULE, [Pool], []).
 
+-spec get_name(yawp_pool_name()) -> {ok, yawp_pool_mntr_name()}.
 get_name(PoolName) ->
     {ok, mntr_name(PoolName)}.
 
+-spec get_stats(yawp_pool_name()) -> ok.
 get_stats(PoolName) ->
     gen_server:cast(mntr_name(PoolName), get_stats).
 

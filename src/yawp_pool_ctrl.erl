@@ -1,5 +1,6 @@
 -module(yawp_pool_ctrl).
 -author('MohsenMoqadam@yahoo.com').
+
 -behaviour(gen_server).
 
 %% API
@@ -37,8 +38,8 @@
                 pool_decrement_size = 0 :: non_neg_integer(),
                 workers_pid             :: list(pid()),
                 ctrl_sui                :: non_neg_integer(), %% SUI: Shaper Update Interval
-                ctrl_ocpd               :: yawp_shaper_cpd(),
-                feedbacks               :: term(), %% === @TODO: update this type correctly!
+                ctrl_cpd                :: yawp_pool_shaper_cpd(),
+                feedbacks               :: term(),
                 mntr_name               :: atom(),
                 beacon_name             :: atom(),
                 decrement_timeout       :: non_neg_integer()
@@ -54,12 +55,23 @@ start_link(#yawp_pool{name = Name} = Pool) ->
                           [Pool],
                           []).
 
+-spec get_pool_size(yawp_pool_name()) -> {ok, yawp_pool_size()}.
 get_pool_size(PoolName) ->
     gen_server:call(PoolName, get_current_pool_size).
 
+-spec increment_pool_size(yawp_pool_name(), yawp_pool_size()) ->
+    {error, unacceptable_size, yawp_pool_available_size()} |
+    {error, pool_max_size_reached, yawp_pool_current_size()} |
+    {ok, yawp_pool_worker_pids()}.
 increment_pool_size(PoolName, Size) ->
     gen_server:call(PoolName, {increment_size, Size}).
 
+-spec decrement_pool_size(yawp_pool_name(), yawp_pool_size()) ->
+    {error, pool_in_decreasing} |
+    {error, unacceptable_size, yawp_pool_current_size()} |
+    {error, pool_min_size_reached} |
+    {error, unacceptable_size, yawp_pool_current_size()} |
+    {ok, yawp_pool_worker_pids()}.
 decrement_pool_size(PoolName, Size) ->
     gen_server:call(PoolName, {decrement_size, Size}).
 
@@ -76,7 +88,7 @@ init([Pool]) ->
 
     {ok, _TimerRef} = timer:send_interval(PoolSUI, update_shaper),
     {ok, MntrName} = yawp_pool_mntr:get_name(PoolName),
-    {ok, BeaconlightName} = yawp_pool_beacon:get_name(PoolName),
+    {ok, BeaconName} = yawp_pool_beacon:get_name(PoolName),
 
     State0 = #state{pool              = Pool,
                     pool_name         = PoolName,
@@ -84,7 +96,7 @@ init([Pool]) ->
                     pool_min_size     = PoolMinSize,
                     ctrl_sui          = PoolSUI,
                     mntr_name         = MntrName,
-                    beacon_name       = BeaconlightName,
+                    beacon_name       = BeaconName,
                     feedbacks         = #{},
                     decrement_timeout = DecrementTimeout},
     {ok, NewState} = pool_init(State0),
@@ -178,7 +190,7 @@ handle_info(update_shaper, #state{pool_name = PoolName,
                                   feedbacks = Feedbacks,
                                   mntr_name = MntrName} = State) ->
     {ok, CPD} = update_shaper(PoolName, MntrName, Feedbacks),
-    NewState = State#state{ctrl_ocpd = CPD},
+    NewState = State#state{ctrl_cpd = CPD},
     {noreply, NewState};
 handle_info(pool_decrement_timeout,
             #state{pool_name = PoolName,
@@ -232,7 +244,7 @@ pool_init(#state{pool_name = PoolName,
     {ok, Pids, State1} = add_workers(State0),
     {ok, CPD} = update_shaper(PoolName, MntrName, Pids),
 
-    NewState = State1#state{ctrl_ocpd = CPD},
+    NewState = State1#state{ctrl_cpd = CPD},
     {ok, NewState}.
 
 update_shaper(PoolName, MntrName, PongsOrPids) when is_list(PongsOrPids);
@@ -279,7 +291,7 @@ remove_workers(RequestedSize, #state{pool = Pool,
                                      pool_current_size = CurrentPoolSize,
                                      beacon_name = BeaconName,
                                      feedbacks = Feedbacks0,
-                                     ctrl_ocpd = CPD0} = State) ->
+                                     ctrl_cpd = CPD0} = State) ->
     {_, RemovedPids, Feedbacks1} =
         array:foldr(fun(_I, {_Pidi, {_Li, _Ui}}, {0, RP, P}) ->
                             {0, RP, P};
@@ -305,7 +317,7 @@ remove_workers(RequestedSize, #state{pool = Pool,
     NewState = State#state{pool_decrement_size = length(RemovedPids),
                            pool_current_size = CurrentPoolSize - length(RemovedPids),
                            feedbacks = Feedbacks1,
-                           ctrl_ocpd = CPD},
+                           ctrl_cpd = CPD},
     {ok, RemovedPids, NewState}.
 
 get_cpd(Feedbacks) ->

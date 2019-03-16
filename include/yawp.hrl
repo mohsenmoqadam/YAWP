@@ -13,10 +13,6 @@
                     decrement_timeout = 60000 :: non_neg_integer()
                    }).
 
--record(yawp_shaper_info, {cpd       :: term(), %% CPD: Cumulative Probability Distribution
-                           mntr_name :: atom()  %% The name of the actor which calculate workers stats.
-                          }).
-
 -record(yawp_signal, {name      :: beacon_service_feedback |
                                    worker_service_feedback |
                                    worker_service_stats    |
@@ -25,7 +21,12 @@
                                    shaper_service_stats,
                       meta      :: term(),
                       sender    :: pid(),
-                      receivers :: list(pid()) }).
+                      receivers :: list(pid())}).
+
+-record(yawp_shaper_info, {cpd       :: term(), %% CPD: Cumulative Probability Distribution
+                           mntr_name :: atom()  %% The name of the actor which calculate workers stats.
+                          }).
+
 
 -record(yawp_worker_feedback, {worker_ql :: non_neg_integer(), %% QL: Queue Lenght
                                worker_ct :: non_neg_integer()  %% CT: Commited Tasks.
@@ -36,19 +37,31 @@
                             infos = 0    :: non_neg_integer(),
                             ol_calls = 0 :: non_neg_integer(),
                             ol_casts = 0 :: non_neg_integer(),
-                            ol_infos = 0 :: non_neg_integer() }).
+                            ol_infos = 0 :: non_neg_integer()}).
 
--record(yawp_shaper_stats, {search_time = 0 :: non_neg_integer() }).
+-record(yawp_shaper_stats, {search_time = 0 :: non_neg_integer()}).
 
--record(yawp_offload_message, {type            :: call | cast | info,
-                               worker_from     :: pid(),
-                               message_from    :: pid(),
-                               message_content :: term() }).
-
+-type yawp_poo()          :: #yawp_pool{}.
+-type yawp_pool_sup()     :: pid().
 -type yawp_pool_name()    :: atom().
--type yawp_shaper_cpd()   :: term(). %% === @TODO: update this type correctly!
--type yawp_worker_ping()  :: ping.
+-type yawp_pool_size()    :: non_neg_integer().
+-type yawp_pool_available_size() :: integer().
+-type yawp_pool_current_size()   :: integer().
+
+-type yawp_pool_worker_pids()  :: list(pid()).
+-type yawp_pool_worker_pid()   :: pid().
+
+-type yawp_pool_shaper_cpd()   :: term().
+-type yawp_pool_shaper_cpd_prob() :: float().
+-type yawp_pool_shaper_cpd_boundary() :: integer().
+
+-type yawp_pool_mntr_name() :: atom().
+
+-type yawp_pool_beacon_name() :: atom().
+
 -type yawp_worker_stats() :: #yawp_worker_stats{}.
+
+-type yawp_signal() :: #yawp_signal{}.
 
 -define(YAWP_NOW_NANO(),  erlang:system_time(nanosecond)).
 -define(YAWP_NOW_MICRO(), erlang:system_time(microsecond)).
