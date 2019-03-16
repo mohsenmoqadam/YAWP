@@ -6,7 +6,10 @@
 %% API
 -export([start_link/1,
          start_link/3,
-         start_link/4]).
+         start_link/4,
+         call/2,
+         call/3,
+         cast/2]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -58,6 +61,15 @@ start_link(Name, Module, Pool, Options) ->
                           ?MODULE,
                           [Module, Pool],
                           Options).
+
+call(ServerRef, Request) ->
+    gen_server:call(ServerRef, Request).
+
+call(ServerRef, Request, Timeout) ->
+    gen_server:call(ServerRef, Request, Timeout).
+
+cast(ServerRef, Request) ->
+    gen_server:call(ServerRef, Request).
 
 %%%===================================================================
 %%% gen_server callbacks
