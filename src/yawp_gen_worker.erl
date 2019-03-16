@@ -69,7 +69,7 @@ call(ServerRef, Request, Timeout) ->
     gen_server:call(ServerRef, Request, Timeout).
 
 cast(ServerRef, Request) ->
-    gen_server:call(ServerRef, Request).
+    gen_server:cast(ServerRef, Request).
 
 %%%===================================================================
 %%% gen_server callbacks
