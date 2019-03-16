@@ -69,8 +69,8 @@
 
 -ifdef(TEST).
 -define(YAWP_LOG_ERROR(Format, Args), ct:print(default, 50, Format, Args)).
--define(YAWP_LOG_INFO(Format,  Args), ?LOG_ERROR(Format, Args)).
--define(YAWP_LOG_DEBUG(Format, Args), ?LOG_ERROR(Format, Args)).
+-define(YAWP_LOG_INFO(Format,  Args), ?YAWP_LOG_ERROR(Format, Args)).
+-define(YAWP_LOG_DEBUG(Format, Args), ?YAWP_LOG_ERROR(Format, Args)).
 -else.
 -define(YAWP_LOG_ERROR(Format, Args), lager:error(Format, Args)).
 -define(YAWP_LOG_INFO(Format,  Args), lager:info(Format, Args)).
